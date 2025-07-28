@@ -183,7 +183,8 @@
     "copySuccess": "Copied to clipboard",
     "copyFailed": "Copy failed",
     "close": "Close",
-    "confirm": "Confirm"
+    "confirm": "Confirm",
+    "language": "Language"
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -366,6 +367,9 @@
     "npmRegistry": "NPM Registry URL",
     "npmRegistryDescription": "Set npm_config_registry environment variable for NPM package installation",
     "npmRegistryPlaceholder": "e.g. https://registry.npmjs.org/",
+    "baseUrl": "Base URL",
+    "baseUrlDescription": "Base URL for MCP requests",
+    "baseUrlPlaceholder": "e.g. http://localhost:3000",
     "installConfig": "Installation",
     "systemConfigUpdated": "System configuration updated successfully",
     "enableSmartRouting": "Enable Smart Routing",

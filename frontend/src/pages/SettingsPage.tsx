@@ -10,22 +10,18 @@ import { PermissionChecker } from '@/components/PermissionChecker';
 import { PERMISSIONS } from '@/constants/permissions';
 
 const SettingsPage: React.FC = () => {
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { showToast } = useToast();
-  const [currentLanguage, setCurrentLanguage] = useState(i18n.language);
-
-  // Update current language when it changes
-  useEffect(() => {
-    setCurrentLanguage(i18n.language);
-  }, [i18n.language]);
 
   const [installConfig, setInstallConfig] = useState<{
     pythonIndexUrl: string;
     npmRegistry: string;
+    baseUrl: string;
   }>({
     pythonIndexUrl: '',
     npmRegistry: '',
+    baseUrl: 'http://localhost:3000',
   });
 
   const [tempSmartRoutingConfig, setTempSmartRoutingConfig] = useState<{
@@ -125,14 +121,14 @@ const SettingsPage: React.FC = () => {
     await updateRoutingConfig('bearerAuthKey', tempRoutingConfig.bearerAuthKey);
   };
 
-  const handleInstallConfigChange = (key: 'pythonIndexUrl' | 'npmRegistry', value: string) => {
+  const handleInstallConfigChange = (key: 'pythonIndexUrl' | 'npmRegistry' | 'baseUrl', value: string) => {
     setInstallConfig({
       ...installConfig,
       [key]: value
     });
   };
 
-  const saveInstallConfig = async (key: 'pythonIndexUrl' | 'npmRegistry') => {
+  const saveInstallConfig = async (key: 'pythonIndexUrl' | 'npmRegistry' | 'baseUrl') => {
     await updateInstallConfig(key, installConfig[key]);
   };
 
@@ -195,41 +191,9 @@ const SettingsPage: React.FC = () => {
     }, 2000);
   };
 
-  const handleLanguageChange = (lang: string) => {
-    localStorage.setItem('i18nextLng', lang);
-    window.location.reload();
-  };
-
   return (
     <div className="container mx-auto">
       <h1 className="text-2xl font-bold text-gray-900 mb-8">{t('pages.settings.title')}</h1>
-
-      {/* Language Settings */}
-      <div className="bg-white shadow rounded-lg py-4 px-6 mb-6 page-card">
-        <div className="flex items-center justify-between">
-          <h2 className="font-semibold text-gray-800">{t('pages.settings.language')}</h2>
-          <div className="flex space-x-3">
-            <button
-              className={`px-3 py-1.5 rounded-md transition-all duration-200 text-sm ${currentLanguage.startsWith('en')
-                ? 'bg-blue-500 text-white btn-primary'
-                : 'bg-blue-100 text-blue-800 hover:bg-blue-200 btn-secondary'
-                }`}
-              onClick={() => handleLanguageChange('en')}
-            >
-              English
-            </button>
-            <button
-              className={`px-3 py-1.5 rounded-md transition-all duration-200 text-sm ${currentLanguage.startsWith('zh')
-                ? 'bg-blue-500 text-white btn-primary'
-                : 'bg-blue-100 text-blue-800 hover:bg-blue-200 btn-secondary'
-                }`}
-              onClick={() => handleLanguageChange('zh')}
-            >
-              中文
-            </button>
-          </div>
-        </div>
-      </div>
 
       {/* Smart Routing Configuration Settings */}
       <PermissionChecker permissions={PERMISSIONS.SETTINGS_SMART_ROUTING}>
@@ -467,6 +431,30 @@ const SettingsPage: React.FC = () => {
 
           {sectionsVisible.installConfig && (
             <div className="space-y-4 mt-4">
+              <div className="p-3 bg-gray-50 rounded-md">
+                <div className="mb-2">
+                  <h3 className="font-medium text-gray-700">{t('settings.baseUrl')}</h3>
+                  <p className="text-sm text-gray-500">{t('settings.baseUrlDescription')}</p>
+                </div>
+                <div className="flex items-center gap-3">
+                  <input
+                    type="text"
+                    value={installConfig.baseUrl}
+                    onChange={(e) => handleInstallConfigChange('baseUrl', e.target.value)}
+                    placeholder={t('settings.baseUrlPlaceholder')}
+                    className="flex-1 mt-1 block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm form-input"
+                    disabled={loading}
+                  />
+                  <button
+                    onClick={() => saveInstallConfig('baseUrl')}
+                    disabled={loading}
+                    className="mt-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md text-sm font-medium disabled:opacity-50 btn-primary"
+                  >
+                    {t('common.save')}
+                  </button>
+                </div>
+              </div>
+
               <div className="p-3 bg-gray-50 rounded-md">
                 <div className="mb-2">
                   <h3 className="font-medium text-gray-700">{t('settings.pythonIndexUrl')}</h3>

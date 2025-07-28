@@ -108,6 +108,9 @@ export const uploadDxtFile = async (req: Request, res: Response): Promise<void> 
 
       // Clean up any existing version of this server
       cleanupOldDxtServer(manifest.name);
+      if (!fs.existsSync(finalExtractDir)) {
+        fs.mkdirSync(finalExtractDir, { recursive: true });
+      }
 
       // Move the temporary directory to the final location
       fs.renameSync(tempExtractDir, finalExtractDir);

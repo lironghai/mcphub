@@ -183,7 +183,7 @@ const createTransportFromConfig = (name: string, conf: ServerConfig): any => {
 
     transport = new StdioClientTransport({
       command: conf.command,
-      args: conf.args,
+      args: replaceEnvVars(conf.args) as string[],
       env: env,
       stderr: 'pipe',
     });
