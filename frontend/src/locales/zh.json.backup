@@ -463,23 +463,6 @@
     "step3": "点击 'Add New MCP Server' 添加新服务器",
     "step4": "将配置粘贴到相应位置并重启 Cursor",
     "deepLinkOpened": "正在尝试通过深度链接安装到 Cursor...",
-    "deepLinkFailed": "深度链接安装失败，请使用\"复制配置\"按钮手动安装",
-    "cursorTab": "Cursor",
-    "claudeCodeTab": "Claude Code",
-    "claudeDesktopTab": "Claude Desktop",
-    "claudeCodeStep1": "复制上面的配置代码",
-    "claudeCodeStep2": "在VS Code中安装Claude Code扩展",
-    "claudeCodeStep3": "按 Ctrl+Shift+P (Windows/Linux) 或 Cmd+Shift+P (Mac) 打开命令面板",
-    "claudeCodeStep4": "运行命令 'Claude Code: Configure MCP Servers'",
-    "claudeCodeStep5": "在打开的配置文件中添加上述MCP服务器配置",
-    "claudeCodeStep6": "保存配置文件并重新加载VS Code",
-    "claudeDesktopStep1": "复制上面的配置代码",
-    "claudeDesktopStep2": "找到Claude Desktop配置文件位置：",
-    "claudeDesktopStep2Windows": "Windows: %APPDATA%\\Claude\\claude_desktop_config.json",
-    "claudeDesktopStep2Mac": "macOS: ~/Library/Application Support/Claude/claude_desktop_config.json",
-    "claudeDesktopStep2Linux": "Linux: ~/.config/claude/claude_desktop_config.json",
-    "claudeDesktopStep3": "打开配置文件（如果不存在则创建）",
-    "claudeDesktopStep4": "在mcpServers部分添加上述服务器配置",
-    "claudeDesktopStep5": "保存文件并重启Claude Desktop应用"
+    "deepLinkFailed": "深度链接安装失败，请使用\"复制配置\"按钮手动安装"
   }
 }

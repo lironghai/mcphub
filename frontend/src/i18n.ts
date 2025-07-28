@@ -21,7 +21,8 @@ i18n
         translation: zhTranslation
       }
     },
-    fallbackLng: 'en',
+    lng: 'zh', // 强制默认使用中文
+    fallbackLng: 'zh',
     debug: process.env.NODE_ENV === 'development',
     
     // Common namespace used for all translations

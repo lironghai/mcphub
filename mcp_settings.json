@@ -33,6 +33,14 @@
         "SLACK_BOT_TOKEN": "your-bot-token",
         "SLACK_TEAM_ID": "your-team-id"
       }
+    },
+    "context7": {
+      "type": "streamable-http",
+      "url": "https://mcp.context7.com/mcp",
+      "options": {
+        "maxTotalTimeout": 60000
+      },
+      "owner": "admin"
     }
   },
   "users": [
@@ -40,6 +48,37 @@
       "username": "admin",
       "password": "$2b$10$Vt7krIvjNgyN67LXqly0uOcTpN0LI55cYRbcKC71pUDAP0nJ7RPa.",
       "isAdmin": true
+    }
+  ],
+  "systemConfig": {
+    "routing": {
+      "enableGlobalRoute": true,
+      "enableGroupNameRoute": true,
+      "enableBearerAuth": false,
+      "bearerAuthKey": "",
+      "skipAuth": true
+    },
+    "install": {
+      "pythonIndexUrl": "",
+      "npmRegistry": ""
+    },
+    "smartRouting": {
+      "enabled": false,
+      "dbUrl": "",
+      "openaiApiBaseUrl": "",
+      "openaiApiKey": "",
+      "openaiApiEmbeddingModel": ""
+    }
+  },
+  "groups": [
+    {
+      "id": "391fbd74-63a7-419b-833d-0289d3d52138",
+      "name": "dev",
+      "description": "",
+      "servers": [
+        "context7"
+      ],
+      "owner": "admin"
     }
   ]
 }

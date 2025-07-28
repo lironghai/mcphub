@@ -1,0 +1,130 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    meta.helm.sh/release-name: hero-mcp-hub
+    meta.helm.sh/release-namespace: business-test
+  labels:
+    app: hero-mcp-hub
+    app.kubernetes.io/managed-by: Helm
+    chart: hero-chart-1.0.3
+    heritage: Helm
+    release: hero-mcp-hub
+  name: hero-mcp-hub
+  namespace: business-test
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 1
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: hero-mcp-hub
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        kubectl.kubernetes.io/restartedAt: '2025-07-10T11:30:24+08:00'
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: '8080'
+        prometheus.io/scrape: 'true'
+      creationTimestamp: null
+      labels:
+        app: hero-mcp-hub
+        pod-template-hash: 8975cdb85
+        release: hero-mcp-hub
+    spec:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: yingxiong.com/work
+                    operator: NotIn
+                    values:
+                      - nginx
+      containers:
+        - image: "registry.ljdong.net/business-test/server-feature/hero-mcp-hub:v0.0.1.1-snapshot"
+          imagePullPolicy: Always
+          resources:
+            limits:
+              cpu: '1'
+              memory: 2Gi
+            requests:
+              cpu: 100m
+              memory: 512Mi
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          name: "hero-mcp-hub"
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+        - name: harbor-secret
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 10
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    meta.helm.sh/release-name: hero-mcp-hub
+    meta.helm.sh/release-namespace: business-test
+  labels:
+    app: hero-mcp-hub
+    app.kubernetes.io/managed-by: Helm
+    chart: hero-chart-1.0.3
+    heritage: Helm
+    release: hero-mcp-hub
+    svcEndpoints: actuator
+  name: hero-mcp-hub
+  namespace: business-test
+spec:
+  internalTrafficPolicy: Cluster
+  ports:
+    - name: hero-mcp-hub
+      port: 8888
+      protocol: TCP
+      targetPort: 3000
+  selector:
+    app: hero-mcp-hub
+  sessionAffinity: None
+  type: ClusterIP
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  annotations:
+    meta.helm.sh/release-name: hero-mcp-hub
+    meta.helm.sh/release-namespace: business-test
+    nginx.ingress.kubernetes.io/hsts: 'false'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '600'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
+  labels:
+    app: hero-mcp-hub
+    app.kubernetes.io/managed-by: Helm
+    chart: hero-chart-1.0.3
+    heritage: Helm
+    release: hero-mcp-hub
+  name: hero-mcp-hub
+  namespace: business-test
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: hero-mcp-hub.huaweik3.yingxiong.com
+      http:
+        paths:
+          - backend:
+              service:
+                name: hero-mcp-hub
+                port:
+                  number: 8888
+            path: /
+            pathType: ImplementationSpecific
+
