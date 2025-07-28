@@ -210,7 +210,18 @@
       "recentServers": "最近的服务器"
     },
     "servers": {
-      "title": "服务器管理"
+      "title": "服务器管理",
+      "search": {
+        "placeholder": "智能搜索工具...",
+        "button": "搜索",
+        "clear": "清除搜索",
+        "searching": "搜索中...",
+        "results": "找到 {{count}} 个相关工具",
+        "noResults": "未找到相关工具",
+        "error": "搜索失败: {{error}}",
+        "showingFiltered": "显示包含相关工具的服务器",
+        "showingAll": "显示所有服务器"
+      }
     },
     "settings": {
       "title": "设置",
@@ -487,6 +498,7 @@
     "claudeDesktopStep2Linux": "Linux: ~/.config/claude/claude_desktop_config.json",
     "claudeDesktopStep3": "打开配置文件（如果不存在则创建）",
     "claudeDesktopStep4": "在mcpServers部分添加上述服务器配置",
-    "claudeDesktopStep5": "保存文件并重启Claude Desktop应用"
+    "claudeDesktopStep5": "保存文件并重启Claude Desktop应用",
+    "copyClaudeCodeCommand": "复制 Claude Code 命令"
   }
 }

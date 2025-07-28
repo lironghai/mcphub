@@ -291,6 +291,39 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onRefresh }: ServerCar
     }
   }
 
+  // 复制Claude Code命令
+  const copyClaudeCodeCommand = async () => {
+    const singleConfig = await generateSingleServerConfig()
+    const configJson = JSON.stringify(singleConfig, null, 2)
+    
+    const command = `claude mcp add-json "${server.name}" '${configJson.replace(/'/g, "\\'")}'`
+    
+    if (navigator.clipboard && window.isSecureContext) {
+      try {
+        await navigator.clipboard.writeText(command)
+        showToast(t('common.copySuccess'), 'success')
+      } catch (err) {
+        showToast(t('common.copyFailed'), 'error')
+      }
+    } else {
+      // Fallback
+      const textArea = document.createElement('textarea')
+      textArea.value = command
+      textArea.style.position = 'fixed'
+      textArea.style.left = '-9999px'
+      document.body.appendChild(textArea)
+      textArea.focus()
+      textArea.select()
+      try {
+        document.execCommand('copy')
+        showToast(t('common.copySuccess'), 'success')
+      } catch (err) {
+        showToast(t('common.copyFailed'), 'error')
+      }
+      document.body.removeChild(textArea)
+    }
+  }
+
   // 安装到Cursor - 专门负责深度链接安装
   const installToCursor = async () => {
     try {
@@ -637,47 +670,63 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onRefresh }: ServerCar
                   <Copy size={16} className="mr-2" />
                   {t('cursor.copyConfiguration')}
                 </button>
-                
-                {/* Cursor Install Button with Official Light Style */}
-                <button
-                  onClick={installToCursor}
-                  className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                  style={{
-                    background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
-                    boxShadow: '0 4px 15px 0 rgba(116, 75, 162, 0.75)'
-                  }}
-                >
-                  <svg 
-                    width="20" 
-                    height="20" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    className="mr-2"
+
+                {/* 根据标签页显示不同的按钮 */}
+                {activeTab === 'cursor' && (
+                  <button
+                    onClick={installToCursor}
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    style={{
+                      background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                      boxShadow: '0 4px 15px 0 rgba(116, 75, 162, 0.75)'
+                    }}
                   >
-                    <path 
-                      d="M12 2L2 7L12 12L22 7L12 2Z" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                    />
-                    <path 
-                      d="M2 17L12 22L22 17" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                    />
-                    <path 
-                      d="M2 12L12 17L22 12" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                  Add {server.name} MCP server to Cursor
-                </button>
+                    <svg 
+                      width="20" 
+                      height="20" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      className="mr-2"
+                    >
+                      <path 
+                        d="M12 2L2 7L12 12L22 7L12 2Z" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      />
+                      <path 
+                        d="M2 17L12 22L22 17" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      />
+                      <path 
+                        d="M2 12L12 17L22 12" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round"
+                      />
+                    </svg>
+                    Add {server.name} MCP server to Cursor
+                  </button>
+                )}
+
+                                {activeTab === 'claudeCode' && (
+                  <button
+                    onClick={copyClaudeCodeCommand}
+                    className="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md text-white bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition-all duration-200 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                    style={{
+                      background: 'linear-gradient(135deg, #8b5cf6 0%, #6366f1 100%)',
+                      boxShadow: '0 4px 15px 0 rgba(139, 92, 246, 0.75)'
+                    }}
+                  >
+                    <Copy size={20} className="mr-2" />
+                    Copy {server.name} MCP command for Claude Code
+                  </button>
+                )}
               </div>
             </div>
           </div>

@@ -206,7 +206,18 @@
       "recentServers": "Recent Servers"
     },
     "servers": {
-      "title": "Servers Management"
+      "title": "Servers Management",
+      "search": {
+        "placeholder": "Smart search tools...",
+        "button": "Search",
+        "clear": "Clear search",
+        "searching": "Searching...",
+        "results": "Found {{count}} relevant tools",
+        "noResults": "No relevant tools found",
+        "error": "Search failed: {{error}}",
+        "showingFiltered": "Showing servers with relevant tools",
+        "showingAll": "Showing all servers"
+      }
     },
     "groups": {
       "title": "Group Management"
@@ -482,6 +493,7 @@
     "claudeDesktopStep2Linux": "Linux: ~/.config/claude/claude_desktop_config.json",
     "claudeDesktopStep3": "Open the config file (create if it doesn't exist)",
     "claudeDesktopStep4": "Add the server configuration in mcpServers section",
-    "claudeDesktopStep5": "Save the file and restart Claude Desktop app"
+    "claudeDesktopStep5": "Save the file and restart Claude Desktop app",
+    "copyClaudeCodeCommand": "Copy Claude Code Command"
   }
 }
