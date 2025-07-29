@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Group, ApiResponse } from '@/types';
+import { Group, ApiResponse, Server } from '@/types';
 import { getApiUrl } from '../utils/runtime';
 
 export const useGroupData = () => {
@@ -215,6 +215,48 @@ export const useGroupData = () => {
     }
   };
 
+  // Install group - generate configuration for all servers in the group
+  const installGroup = useCallback(
+    async (group: Group): Promise<string> => {
+      try {
+        // 获取安装配置
+        const token = localStorage.getItem('mcphub_token');
+        const settingsResponse = await fetch(getApiUrl('/settings'), {
+          headers: {
+            'x-auth-token': token || '',
+          },
+        });
+
+        let baseUrl = 'http://localhost:3000'; // 默认值
+        if (settingsResponse.ok) {
+          const settingsData = await settingsResponse.json();
+          if (settingsData.success && settingsData.data && settingsData.data.installConfig) {
+            baseUrl = settingsData.data.installConfig.baseUrl || baseUrl;
+          }
+        }
+
+        // 生成分组的MCPHub配置
+        const groupConfig = {
+          mcpServers: {
+            [`mcphub-${group.name}`]: {
+              type: "streamable-http",
+              url: `${baseUrl}/mcp/${group.id}`,
+              headers: {
+                Authorization: "Bearer <your-access-token>"
+              }
+            }
+          }
+        };
+
+        return JSON.stringify(groupConfig, null, 2);
+      } catch (err) {
+        console.error('Error generating group configuration:', err);
+        throw err;
+      }
+    },
+    [t]
+  );
+
   // Fetch groups when the component mounts or refreshKey changes
   useEffect(() => {
     fetchGroups();
@@ -232,5 +274,6 @@ export const useGroupData = () => {
     deleteGroup,
     addServerToGroup,
     removeServerFromGroup,
+    installGroup,
   };
 };

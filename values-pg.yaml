@@ -52,8 +52,8 @@ spec:
           imagePullPolicy: Always
           resources:
             limits:
-              cpu: '1'
-              memory: 2Gi
+              cpu: '2'
+              memory: 4Gi
             requests:
               cpu: 100m
               memory: 512Mi
@@ -61,32 +61,14 @@ spec:
           terminationMessagePolicy: File
           name: "hero-mcp-hub-pg"
           env:
-            - name: POSTGRES_USER
-              valueFrom:
-                secretKeyRef:
-                  name: pgvector-secret
-                  key: postgres-user
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: pgvector-secret
-                  key: postgres-password
-            - name: POSTGRES_DB
-              valueFrom:
-                secretKeyRef:
-                  name: pgvector-secret
-                  key: postgres-db
-            - name: PGDATA
-              value: /var/lib/postgresql/data/pgdata
-          volumeMounts:
-            - name: postgres-storage
-              mountPath: /var/lib/postgresql/data
-            - name: postgres-config
-              mountPath: /etc/postgresql/postgresql.conf
-              subPath: postgresql.conf
-            - name: postgres-config
-              mountPath: /docker-entrypoint-initdb.d/init.sql
-              subPath: init.sql
+          - name: POSTGRES_USER
+            value: "hero-mcp-hub"
+          - name: POSTGRES_PASSWORD
+            value: "uU1kK4lH9lP1zM7pA8cO6tM4xG7yR7hY"
+          - name: POSTGRES_DB
+            value: "hero-mcp-hub"
+          - name: PGDATA
+            value: /var/lib/postgresql/data/pgdata
       dnsPolicy: ClusterFirst
       imagePullSecrets:
         - name: harbor-secret
@@ -115,43 +97,10 @@ spec:
   internalTrafficPolicy: Cluster
   ports:
     - name: hero-mcp-hub-pg
-      port: 8888
+      port: 5432
       protocol: TCP
       targetPort: 5432
   selector:
     app: hero-mcp-hub-pg
   sessionAffinity: None
   type: ClusterIP
-
----
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  annotations:
-    meta.helm.sh/release-name: hero-mcp-hub-pg
-    meta.helm.sh/release-namespace: business-test
-    nginx.ingress.kubernetes.io/hsts: 'false'
-    nginx.ingress.kubernetes.io/proxy-read-timeout: '600'
-    nginx.ingress.kubernetes.io/ssl-redirect: 'false'
-  labels:
-    app: hero-mcp-hub-pg
-    app.kubernetes.io/managed-by: Helm
-    chart: hero-chart-1.0.3
-    heritage: Helm
-    release: hero-mcp-hub-pg
-  name: hero-mcp-hub-pg
-  namespace: business-test
-spec:
-  ingressClassName: nginx
-  rules:
-    - host: hero-mcp-hub-pg.huaweik3.yingxiong.com
-      http:
-        paths:
-          - backend:
-              service:
-                name: hero-mcp-hub-pg
-                port:
-                  number: 8888
-            path: /
-            pathType: ImplementationSpecific
-

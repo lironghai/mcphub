@@ -64,7 +64,7 @@
     },
     "smartRouting": {
       "enabled": true,
-      "dbUrl": "postgresql://mcphub:your_password@localhost:5432/mcphub",
+      "dbUrl": "postgresql://hero-mcp-hub:uU1kK4lH9lP1zM7pA8cO6tM4xG7yR7hY@hero-mcp-hub-pg:5432/hero-mcp-hub",
       "openaiApiBaseUrl": "https://dashscope.aliyuncs.com/compatible-mode/v1",
       "openaiApiKey": "sk-9d870f71837940128029d33baff97b11",
       "openaiApiEmbeddingModel": "text-embedding-v3"

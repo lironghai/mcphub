@@ -26,19 +26,6 @@
     "viewProfile": "View profile",
     "userCenter": "User Center"
   },
-  "sponsor": {
-    "label": "Sponsor",
-    "title": "Support the Project",
-    "rewardAlt": "Reward QR Code",
-    "supportMessage": "Support the development of MCP Hub by buying me a coffee!",
-    "supportButton": "Support on Ko-fi"
-  },
-  "wechat": {
-    "label": "WeChat",
-    "title": "Connect via WeChat",
-    "qrCodeAlt": "WeChat QR Code",
-    "scanMessage": "Scan this QR code to connect with us on WeChat"
-  },
   "discord": {
     "label": "Discord",
     "title": "Join our Discord server",
@@ -260,6 +247,7 @@
     "addNew": "Add New Group",
     "edit": "Edit Group",
     "delete": "Delete",
+    "install": "Install",
     "confirmDelete": "Are you sure you want to delete this group?",
     "deleteWarning": "Deleting group '{{name}}' will remove it and all its server associations. This action cannot be undone.",
     "name": "Group Name",
@@ -270,6 +258,10 @@
     "createError": "Failed to create group",
     "updateError": "Failed to update group",
     "deleteError": "Failed to delete group",
+    "installError": "Failed to install group",
+    "installSuccess": "Group '{{name}}' installed successfully",
+    "installGroup": "Install Group {{name}}",
+    "noServersInGroup": "No servers in group to install",
     "serverAddError": "Failed to add server to group",
     "serverRemoveError": "Failed to remove server from group",
     "addServer": "Add Server to Group",

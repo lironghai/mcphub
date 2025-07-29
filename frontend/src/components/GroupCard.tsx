@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
 import { Group, Server } from '@/types'
-import { Edit, Trash, Copy, Check, Link, FileCode, DropdownIcon } from '@/components/icons/LucideIcons'
+import { Edit, Trash, Copy, Check, Link, FileCode, DropdownIcon, Download } from '@/components/icons/LucideIcons'
 import DeleteDialog from '@/components/ui/DeleteDialog'
+import InstallModal from '@/components/ui/InstallModal'
 import { useToast } from '@/contexts/ToastContext'
 import { useSettingsData } from '@/hooks/useSettingsData'
+import { useGroupData } from '@/hooks/useGroupData'
 
 interface GroupCardProps {
   group: Group
@@ -22,9 +24,12 @@ const GroupCard = ({
   const { t } = useTranslation()
   const { showToast } = useToast()
   const { installConfig } = useSettingsData()
+  const { installGroup } = useGroupData()
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
   const [copied, setCopied] = useState(false)
   const [showCopyDropdown, setShowCopyDropdown] = useState(false)
+  const [showInstallModal, setShowInstallModal] = useState(false)
+  const [groupConfig, setGroupConfig] = useState<string>('')
   const dropdownRef = useRef<HTMLDivElement>(null)
 
   // Close dropdown when clicking outside
@@ -47,6 +52,29 @@ const GroupCard = ({
 
   const handleDelete = () => {
     setShowDeleteDialog(true)
+  }
+
+  const handleInstall = async () => {
+    try {
+      // Generate group configuration
+      const config = await installGroup(group)
+      setGroupConfig(config)
+      setShowInstallModal(true)
+    } catch (error) {
+      console.error('Error generating group configuration:', error)
+      showToast(t('groups.installError'), 'error')
+    }
+  }
+
+  const handleGroupInstall = async () => {
+    try {
+      // 分组安装逻辑：配置已经生成，这里只需要提供成功反馈
+      showToast(t('groups.installSuccess', { name: group.name }), 'success')
+      setShowInstallModal(false)
+    } catch (error) {
+      console.error('Error installing group:', error)
+      showToast(t('groups.installError'), 'error')
+    }
   }
 
   const handleConfirmDelete = () => {
@@ -166,6 +194,16 @@ const GroupCard = ({
             {t('groups.serverCount', { count: group.servers.length })}
           </div>
           <button
+            onClick={handleInstall}
+            className="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 text-sm btn-primary transition-colors shadow-sm"
+            title={t('cursor.installToCursor')}
+          >
+            <div className="flex items-center">
+              <Download size={12} className="mr-1" />
+              {t('cursor.install')}
+            </div>
+          </button>
+          <button
             onClick={handleEdit}
             className="text-gray-500 hover:text-gray-700"
             title={t('groups.edit')}
@@ -208,6 +246,14 @@ const GroupCard = ({
         onConfirm={handleConfirmDelete}
         serverName={group.name}
         isGroup={true}
+      />
+      <InstallModal
+        isOpen={showInstallModal}
+        onClose={() => setShowInstallModal(false)}
+        serverName={group.name}
+        customConfig={groupConfig}
+        title={t('groups.installGroup', { name: group.name })}
+        onInstall={handleGroupInstall}
       />
     </div>
   )

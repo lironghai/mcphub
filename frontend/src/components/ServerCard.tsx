@@ -156,8 +156,29 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onRefresh }: ServerCar
       if (response.ok) {
         const result = await response.json()
         if (result.success && result.data && result.data.mcpServers && result.data.mcpServers[server.name]) {
+          const serverSettings = result.data.mcpServers[server.name]
+          
+          // 确保stdio模式下命令参数完整
+          if (serverSettings.command && (!serverSettings.type || serverSettings.type === 'stdio')) {
+            const config = {
+              command: serverSettings.command,
+              args: serverSettings.args || ['-y', server.name],
+              ...(serverSettings.env && Object.keys(serverSettings.env).length > 0 && { env: serverSettings.env })
+            }
+            
+            // 确保args参数完整，特别是包名
+            if (config.command === 'npx' && config.args.length === 2 && config.args[0] === '-y') {
+              if (!config.args[1].startsWith('@') && !config.args[1].includes('/')) {
+                // 如果没有包作用域，尝试添加默认的MCP包前缀
+                config.args[1] = `@modelcontextprotocol/server-${server.name}`
+              }
+            }
+            
+            return config
+          }
+          
           // 返回单个服务器配置（不包含外层mcpServers对象）
-          return result.data.mcpServers[server.name]
+          return serverSettings
         }
       }
     } catch (error) {
@@ -168,7 +189,7 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onRefresh }: ServerCar
     if (!server.config) {
       return {
         command: 'npx',
-        args: ['-y', server.name]
+        args: ['-y', `@modelcontextprotocol/server-${server.name}`]
       }
     }
     
@@ -186,11 +207,21 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onRefresh }: ServerCar
       }
     } else {
       // stdio类型或默认类型
-      return {
+      const config = {
         command: server.config.command || 'npx',
         args: server.config.args || ['-y', server.name],
         ...(server.config.env && Object.keys(server.config.env).length > 0 && { env: server.config.env })
       }
+      
+      // 确保args参数完整，特别是包名
+      if (config.command === 'npx' && config.args.length === 2 && config.args[0] === '-y') {
+        if (!config.args[1].startsWith('@') && !config.args[1].includes('/')) {
+          // 如果没有包作用域，尝试添加默认的MCP包前缀
+          config.args[1] = `@modelcontextprotocol/server-${server.name}`
+        }
+      }
+      
+      return config
     }
   }
 
@@ -208,10 +239,88 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onRefresh }: ServerCar
     return JSON.stringify(mcpConfig, null, 2)
   }
 
+  // 为Cursor深度链接生成配置（特殊格式）
+  const generateCursorDeepLinkConfig = async (): Promise<any> => {
+    try {
+      const { getApiUrl } = await import('@/utils/runtime')
+      const token = localStorage.getItem('mcphub_token')
+      
+      // 获取完整的设置配置
+      const response = await fetch(getApiUrl('/settings'), {
+        headers: {
+          'x-auth-token': token || ''
+        }
+      })
+      
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success && result.data && result.data.mcpServers && result.data.mcpServers[server.name]) {
+          const serverSettings = result.data.mcpServers[server.name]
+          
+          // 对于stdio模式，Cursor深度链接需要单一command字符串格式
+          if (serverSettings.command && (!serverSettings.type || serverSettings.type === 'stdio')) {
+            // 将command和args合并为单一字符串
+            const fullCommand = serverSettings.args && serverSettings.args.length > 0
+              ? `${serverSettings.command} ${serverSettings.args.join(' ')}`
+              : `${serverSettings.command} -y @modelcontextprotocol/server-${server.name}`
+            
+            const config: any = {
+              command: fullCommand
+            }
+            
+            // 添加环境变量（如果有）
+            if (serverSettings.env && Object.keys(serverSettings.env).length > 0) {
+              config.env = serverSettings.env
+            }
+            
+            return config
+          }
+          
+          // 对于其他类型（sse, streamable-http），直接返回原配置
+          return serverSettings
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching server settings:', error)
+    }
+    
+    // 如果无法获取实际配置，生成默认配置
+    if (!server.config) {
+      return {
+        command: `npx -y @modelcontextprotocol/server-${server.name}`
+      }
+    }
+    
+    // 根据服务器类型生成相应的配置
+    if (server.config.type === 'sse') {
+      return {
+        url: server.config.url || "",
+        type: "sse"
+      }
+    } else if (server.config.type === 'streamable-http') {
+      return {
+        url: server.config.url || "",
+        type: "streamable-http",
+        ...(server.config.headers && Object.keys(server.config.headers).length > 0 && { headers: server.config.headers })
+      }
+    } else {
+      // stdio类型或默认类型，转换为Cursor格式
+      const command = server.config.command || 'npx'
+      const args = server.config.args || ['-y', `@modelcontextprotocol/server-${server.name}`]
+      const fullCommand = `${command} ${args.join(' ')}`
+      
+      const config: any = { command: fullCommand }
+      if (server.config.env && Object.keys(server.config.env).length > 0) {
+        config.env = server.config.env
+      }
+      return config
+    }
+  }
+
   // 尝试使用Cursor深度链接安装
   const tryDeepLinkInstall = async () => {
     try {
-      const singleConfig = await generateSingleServerConfig()
+      const singleConfig = await generateCursorDeepLinkConfig()
       const configJson = JSON.stringify(singleConfig)
       const encodedConfig = btoa(configJson) // Base64编码
       

@@ -26,19 +26,6 @@
     "viewProfile": "查看个人中心",
     "userCenter": "个人中心"
   },
-  "sponsor": {
-    "label": "赞助",
-    "title": "支持项目",
-    "rewardAlt": "赞赏码",
-    "supportMessage": "通过捐赠支持 MCP Hub 的开发！",
-    "supportButton": "在 Ko-fi 上支持"
-  },
-  "wechat": {
-    "label": "微信",
-    "title": "微信联系",
-    "qrCodeAlt": "微信二维码",
-    "scanMessage": "扫描二维码添加微信"
-  },
   "discord": {
     "label": "Discord",
     "title": "加入我们的 Discord 服务器",
@@ -264,6 +251,7 @@
     "addNew": "添加新分组",
     "edit": "编辑分组",
     "delete": "删除",
+    "install": "安装",
     "confirmDelete": "您确定要删除此分组吗？",
     "deleteWarning": "删除分组 '{{name}}' 将会移除该分组及其所有服务器关联。此操作无法撤销。",
     "name": "分组名称",
@@ -274,6 +262,10 @@
     "createError": "创建分组失败",
     "updateError": "更新分组失败",
     "deleteError": "删除分组失败",
+    "installError": "安装分组失败",
+    "installSuccess": "分组 '{{name}}' 安装成功",
+    "installGroup": "安装分组 {{name}}",
+    "noServersInGroup": "分组中没有服务器可以安装",
     "serverAddError": "向分组添加服务器失败",
     "serverRemoveError": "从分组移除服务器失败",
     "addServer": "添加服务器到分组",
