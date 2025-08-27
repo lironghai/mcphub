@@ -16,6 +16,7 @@ import {
   AlertCircle,
   Link,
   FileCode,
+  Download,
   ChevronDown as DropdownIcon,
   Wrench
 } from 'lucide-react'
@@ -38,6 +39,7 @@ export {
   AlertCircle,
   Link,
   FileCode,
+  Download,
   DropdownIcon,
   Wrench
 }
@@ -60,6 +62,7 @@ const LucideIcons = {
   AlertCircle,
   Link,
   FileCode,
+  Download,
   DropdownIcon
 }
 

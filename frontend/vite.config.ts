@@ -30,6 +30,8 @@ export default defineConfig({
     sourcemap: true, // Enable source maps for production build
   },
   server: {
+    host: '0.0.0.0', // 允许局域网访问
+    port: 5173, // 指定端口（可选）
     proxy: {
       [`${basePath}/api`]: {
         target: 'http://localhost:3000',

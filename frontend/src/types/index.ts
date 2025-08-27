@@ -116,6 +116,7 @@ export interface ServerConfig {
   enabled?: boolean;
   tools?: Record<string, { enabled: boolean; description?: string }>; // Tool-specific configurations with enable/disable state and custom descriptions
   prompts?: Record<string, { enabled: boolean; description?: string }>; // Prompt-specific configurations with enable/disable state and custom descriptions
+  tags?: string[]; // Custom tags for server organization and filtering
   options?: {
     timeout?: number; // Request timeout in milliseconds
     resetTimeoutOnProgress?: boolean; // Reset timeout on progress notifications
@@ -171,6 +172,7 @@ export interface Server {
   prompts?: Prompt[];
   config?: ServerConfig;
   enabled?: boolean;
+  tags?: string[]; // Custom tags for server organization and filtering
 }
 
 // Group types
@@ -203,6 +205,7 @@ export interface ServerFormData {
   type?: 'stdio' | 'sse' | 'streamable-http' | 'openapi'; // Added type field with openapi support
   env: EnvVar[];
   headers: EnvVar[];
+  tags?: string[]; // Custom tags for server organization
   options?: {
     timeout?: number;
     resetTimeoutOnProgress?: boolean;

@@ -59,7 +59,7 @@ import {
 import { login, register, getCurrentUser, changePassword } from '../controllers/authController.js';
 import { getAllLogs, clearLogs, streamLogs } from '../controllers/logController.js';
 import { getRuntimeConfig, getPublicConfig } from '../controllers/configController.js';
-import { callTool } from '../controllers/toolController.js';
+import { callTool, searchTools } from '../controllers/toolController.js';
 import { getPrompt } from '../controllers/promptController.js';
 import { uploadDxtFile, uploadMiddleware } from '../controllers/dxtController.js';
 import { healthCheck } from '../controllers/healthController.js';
@@ -115,6 +115,7 @@ export const initRoutes = (app: express.Application): void => {
   router.get('/users-stats', getUserStats);
 
   // Tool management routes
+  router.post('/tools/search', searchTools);
   router.post('/tools/call/:server', callTool);
 
   // Prompt management routes

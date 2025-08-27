@@ -604,6 +604,7 @@ export const getServersInfo = (): Omit<ServerInfo, 'client' | 'transport'>[] => 
       prompts: promptsWithEnabled,
       createTime,
       enabled,
+      tags: serverConfig?.tags || [], // Include tags from server configuration
     };
   });
   infos.sort((a, b) => {

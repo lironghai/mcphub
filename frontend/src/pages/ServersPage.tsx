@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useNavigate } from 'react-router-dom';
 import { Server } from '@/types';
@@ -7,10 +7,13 @@ import AddServerForm from '@/components/AddServerForm';
 import EditServerForm from '@/components/EditServerForm';
 import { useServerData } from '@/hooks/useServerData';
 import DxtUploadForm from '@/components/DxtUploadForm';
+import { searchTools, getServersFromSearchResponse } from '@/services/smartSearchService';
+import { useToast } from '@/contexts/ToastContext';
 
 const ServersPage: React.FC = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
+  const { showToast } = useToast();
   const {
     servers,
     error,
@@ -25,6 +28,13 @@ const ServersPage: React.FC = () => {
   const [editingServer, setEditingServer] = useState<Server | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [showDxtUpload, setShowDxtUpload] = useState(false);
+  
+  // 搜索相关状态
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<any>(null);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [searchThreshold, setSearchThreshold] = useState(0.65);
 
   const handleEditClick = async (server: Server) => {
     const fullServerData = await handleServerEdit(server);
@@ -54,6 +64,64 @@ const ServersPage: React.FC = () => {
     setShowDxtUpload(false);
     triggerRefresh();
   };
+
+  // 智能搜索功能
+  const handleSearch = useCallback(async () => {
+    if (!searchQuery.trim()) {
+      setSearchResults(null);
+      setHasSearched(false);
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const result = await searchTools(searchQuery.trim(), 20, searchThreshold);
+      if (result.success && result.data) {
+        setSearchResults(result.data);
+        setHasSearched(true);
+        
+        const toolCount = result.data.tools?.length || 0;
+        if (toolCount > 0) {
+          showToast(t('pages.servers.search.results', { count: toolCount }), 'success');
+        } else {
+          showToast(t('pages.servers.search.noResults'), 'info');
+        }
+      } else {
+        setSearchResults(null);
+        setHasSearched(true);
+        showToast(t('pages.servers.search.error', { error: result.error || '未知错误' }), 'error');
+      }
+    } catch (error) {
+      console.error('搜索失败:', error);
+      setSearchResults(null);
+      setHasSearched(true);
+      showToast(t('pages.servers.search.error', { error: '网络错误' }), 'error');
+    } finally {
+      setIsSearching(false);
+    }
+  }, [searchQuery, searchThreshold, showToast, t]);
+
+  // 清除搜索
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+    setSearchResults(null);
+    setHasSearched(false);
+  }, []);
+
+  // 根据搜索结果筛选服务器
+  const filteredServers = useMemo(() => {
+    if (!hasSearched || !searchResults) {
+      return servers;
+    }
+    return getServersFromSearchResponse(searchResults, servers);
+  }, [servers, searchResults, hasSearched]);
+
+  // 处理Enter键搜索
+  const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      handleSearch();
+    }
+  }, [handleSearch]);
 
   return (
     <div>
@@ -99,6 +167,93 @@ const ServersPage: React.FC = () => {
         </div>
       </div>
 
+      {/* 智能搜索栏 */}
+      <div className="mb-6 bg-white shadow rounded-lg p-4">
+        <div className="flex items-center space-x-4">
+          <div className="flex-1 relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={t('pages.servers.search.placeholder')}
+              className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+            />
+          </div>
+          <button
+            onClick={handleSearch}
+            disabled={isSearching || !searchQuery.trim()}
+            className={`px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 flex items-center btn-primary transition-colors ${
+              isSearching || !searchQuery.trim() ? 'opacity-50 cursor-not-allowed' : ''
+            }`}
+          >
+            {isSearching ? (
+              <svg className="animate-spin h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+            ) : (
+              <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clipRule="evenodd" />
+              </svg>
+            )}
+            {isSearching ? t('pages.servers.search.searching') : t('pages.servers.search.button')}
+          </button>
+          {hasSearched && (
+            <button
+              onClick={handleClearSearch}
+              className="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 flex items-center btn-secondary transition-colors"
+            >
+              <svg className="h-4 w-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+              </svg>
+              {t('pages.servers.search.clear')}
+            </button>
+          )}
+        </div>
+        
+        {/* 高级搜索选项 */}
+        <div className="mt-3 flex items-center space-x-4 text-sm">
+          <div className="flex items-center space-x-2">
+            <label htmlFor="threshold" className="text-gray-700">相似度阈值:</label>
+            <input
+              id="threshold"
+              type="range"
+              min="0"
+              max="1"
+              step="0.05"
+              value={searchThreshold}
+              onChange={(e) => setSearchThreshold(parseFloat(e.target.value))}
+              className="w-24"
+            />
+            <span className="text-gray-600 min-w-[3rem]">{searchThreshold.toFixed(2)}</span>
+          </div>
+          <div className="text-xs text-gray-500">
+            阈值越高结果越精确，阈值越低结果越多样
+          </div>
+        </div>
+
+        {/* 搜索状态提示 */}
+        {hasSearched && (
+          <div className="mt-3 text-sm text-gray-600">
+            {filteredServers.length < servers.length 
+              ? t('pages.servers.search.showingFiltered')
+              : t('pages.servers.search.showingAll')
+            }
+            {searchResults?.tools?.length > 0 && (
+              <span className="ml-2 text-blue-600">
+                ({t('pages.servers.search.results', { count: searchResults.tools.length })})
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
       {error && (
         <div className="mb-6 bg-red-50 border-l-4 border-red-500 p-4 rounded shadow-sm error-box">
           <div className="flex items-center justify-between">
@@ -128,13 +283,18 @@ const ServersPage: React.FC = () => {
             <p className="text-gray-600">{t('app.loading')}</p>
           </div>
         </div>
-      ) : servers.length === 0 ? (
+      ) : filteredServers.length === 0 ? (
         <div className="bg-white shadow rounded-lg p-6 empty-state">
-          <p className="text-gray-600">{t('app.noServers')}</p>
+          <p className="text-gray-600">
+            {hasSearched && servers.length > 0 
+              ? t('pages.servers.search.noResults')
+              : t('app.noServers')
+            }
+          </p>
         </div>
       ) : (
         <div className="space-y-6">
-          {servers.map((server, index) => (
+          {filteredServers.map((server: Server, index: number) => (
             <ServerCard
               key={index}
               server={server}

@@ -540,6 +540,12 @@ const SettingsPage: React.FC = () => {
                 <div className="mb-2">
                   <h3 className="font-medium text-gray-700">{t('settings.baseUrl')}</h3>
                   <p className="text-sm text-gray-500">{t('settings.baseUrlDescription')}</p>
+                  {installConfig.baseUrl === 'http://localhost:3000' && (
+                    <p className="text-sm text-amber-600 mt-1">
+                      <span className="inline-block w-4 h-4 mr-1">⚠️</span>
+                      {t('settings.baseUrlWarning')}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   <input

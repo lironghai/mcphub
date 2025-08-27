@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Group, ApiResponse, IGroupServerConfig } from '@/types';
+import { Group, ApiResponse, IGroupServerConfig, Server } from '@/types';
 import { apiGet, apiPost, apiPut, apiDelete } from '../utils/fetchInterceptor';
+import { getApiUrl } from '../utils/runtime';
 
 export const useGroupData = () => {
   const { t } = useTranslation();
@@ -157,6 +158,53 @@ export const useGroupData = () => {
     }
   };
 
+  // Install group - generate configuration for all servers in the group
+  const installGroup = useCallback(
+    async (group: Group): Promise<string> => {
+      try {
+        // 获取安装配置
+        const token = localStorage.getItem('mcphub_token');
+        const settingsResponse = await fetch(getApiUrl('/settings'), {
+          headers: {
+            'x-auth-token': token || '',
+          },
+        });
+
+        // 获取配置的baseUrl，如果没有配置则自动检测当前域名
+        let baseUrl = `${window.location.protocol}//${window.location.host}`;
+        if (settingsResponse.ok) {
+          const settingsData = await settingsResponse.json();
+          if (settingsData.success && settingsData.data && settingsData.data.systemConfig && settingsData.data.systemConfig.install) {
+            const configuredBaseUrl = settingsData.data.systemConfig.install.baseUrl;
+            // 只有当配置的baseUrl不是默认的localhost:3000时才使用配置值
+            if (configuredBaseUrl && configuredBaseUrl !== 'http://localhost:3000') {
+              baseUrl = configuredBaseUrl;
+            }
+          }
+        }
+
+        // 生成分组的MCPHub配置
+        const groupConfig = {
+          mcpServers: {
+            [`mcphub-${group.name}`]: {
+              type: "streamable-http",
+              url: `${baseUrl}/mcp/${group.id}`,
+              headers: {
+                Authorization: "Bearer <your-access-token>"
+              }
+            }
+          }
+        };
+
+        return JSON.stringify(groupConfig, null, 2);
+      } catch (err) {
+        console.error('Error generating group configuration:', err);
+        throw err;
+      }
+    },
+    [t]
+  );
+
   // Fetch groups when the component mounts or refreshKey changes
   useEffect(() => {
     fetchGroups();
@@ -174,5 +222,6 @@ export const useGroupData = () => {
     deleteGroup,
     addServerToGroup,
     removeServerFromGroup,
+    installGroup,
   };
 };

@@ -42,6 +42,7 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
     type: getInitialServerType(), // Initialize the type field
     env: [],
     headers: [],
+    tags: (initialData && (initialData.tags || (initialData.config && initialData.config.tags))) || [],
     options: {
       timeout: (initialData && initialData.config && initialData.config.options && initialData.config.options.timeout) || 60000,
       resetTimeoutOnProgress: (initialData && initialData.config && initialData.config.options && initialData.config.options.resetTimeoutOnProgress) || false,
@@ -89,6 +90,7 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
 
   const [isRequestOptionsExpanded, setIsRequestOptionsExpanded] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
+  const [tagInput, setTagInput] = useState<string>('')
   const isEdit = !!initialData
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -137,6 +139,31 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
     const newHeaderVars = [...headerVars]
     newHeaderVars.splice(index, 1)
     setHeaderVars(newHeaderVars)
+  }
+
+  // Tag management functions
+  const addTag = () => {
+    const trimmedTag = tagInput.trim()
+    if (trimmedTag && !formData.tags?.includes(trimmedTag)) {
+      setFormData({
+        ...formData,
+        tags: [...(formData.tags || []), trimmedTag]
+      })
+      setTagInput('')
+    }
+  }
+
+  const removeTag = (index: number) => {
+    const newTags = [...(formData.tags || [])]
+    newTags.splice(index, 1)
+    setFormData({ ...formData, tags: newTags })
+  }
+
+  const handleTagInputKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addTag()
+    }
   }
 
   // Handle options changes
@@ -250,7 +277,8 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
                 env: Object.keys(env).length > 0 ? env : undefined,
               }
           ),
-          ...(Object.keys(options).length > 0 ? { options } : {})
+          ...(Object.keys(options).length > 0 ? { options } : {}),
+          ...(formData.tags && formData.tags.length > 0 ? { tags: formData.tags } : {})
         }
       }
 
@@ -797,6 +825,58 @@ const ServerForm = ({ onSubmit, onCancel, initialData = null, modalTitle, formEr
             </div>
           </>
         )}
+
+        {/* Tags Configuration */}
+        <div className="mb-4">
+          <label className="block text-gray-700 text-sm font-bold mb-2">
+            {t('server.tags')}
+          </label>
+          
+          {/* Tag input */}
+          <div className="flex mb-2">
+            <input
+              type="text"
+              value={tagInput}
+              onChange={(e) => setTagInput(e.target.value)}
+              onKeyPress={handleTagInputKeyPress}
+              placeholder={t('server.tagPlaceholder')}
+              className="shadow appearance-none border rounded-l py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline flex-1 form-input"
+            />
+            <button
+              type="button"
+              onClick={addTag}
+              disabled={!tagInput.trim()}
+              className="bg-blue-500 hover:bg-blue-700 disabled:bg-gray-300 text-white font-medium py-2 px-4 rounded-r btn-primary"
+            >
+              {t('server.addTag')}
+            </button>
+          </div>
+
+          {/* Tags display */}
+          {formData.tags && formData.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {formData.tags.map((tag, index) => (
+                <div
+                  key={index}
+                  className="bg-green-50 text-green-700 text-sm px-3 py-1 rounded-full flex items-center gap-2 label-secondary"
+                >
+                  <span>#{tag}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeTag(index)}
+                    className="text-green-600 hover:text-green-800 font-bold text-sm"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          
+          <p className="text-xs text-gray-500 mt-1">
+            {t('server.tagsDescription')}
+          </p>
+        </div>
 
         {/* Request Options Configuration */}
         {serverType !== 'openapi' && (

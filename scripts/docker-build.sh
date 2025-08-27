@@ -1,0 +1,1 @@
+docker build -t registry.ljdong.net/business-test/server-feature/hero-mcp-hub:v0.0.1.3-snapshot .
