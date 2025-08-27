@@ -227,11 +227,16 @@ export const useGroupData = () => {
           },
         });
 
-        let baseUrl = 'http://localhost:3000'; // 默认值
+        // 获取配置的baseUrl，如果没有配置则自动检测当前域名
+        let baseUrl = `${window.location.protocol}//${window.location.host}`;
         if (settingsResponse.ok) {
           const settingsData = await settingsResponse.json();
-          if (settingsData.success && settingsData.data && settingsData.data.installConfig) {
-            baseUrl = settingsData.data.installConfig.baseUrl || baseUrl;
+          if (settingsData.success && settingsData.data && settingsData.data.systemConfig && settingsData.data.systemConfig.install) {
+            const configuredBaseUrl = settingsData.data.systemConfig.install.baseUrl;
+            // 只有当配置的baseUrl不是默认的localhost:3000时才使用配置值
+            if (configuredBaseUrl && configuredBaseUrl !== 'http://localhost:3000') {
+              baseUrl = configuredBaseUrl;
+            }
           }
         }
 

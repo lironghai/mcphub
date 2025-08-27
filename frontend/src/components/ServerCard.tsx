@@ -467,6 +467,25 @@ const ServerCard = ({ server, onRemove, onEdit, onToggle, onRefresh }: ServerCar
               <span>{server.tools?.length || 0} {t('server.tools')}</span>
             </div>
 
+            {/* Custom tags display */}
+            {server.tags && server.tags.length > 0 && (
+              <div className="flex items-center gap-1 max-w-xs overflow-hidden">
+                {server.tags.slice(0, 3).map((tag, index) => (
+                  <span
+                    key={index}
+                    className="bg-green-50 text-green-700 text-xs px-2 py-1 rounded flex-shrink-0 label-secondary"
+                  >
+                    #{tag}
+                  </span>
+                ))}
+                {server.tags.length > 3 && (
+                  <span className="bg-gray-100 text-gray-600 text-xs px-1.5 py-1 rounded flex-shrink-0">
+                    +{server.tags.length - 3} {t('server.moreTags')}
+                  </span>
+                )}
+              </div>
+            )}
+
             {server.error && (
               <div className="relative">
                 <div

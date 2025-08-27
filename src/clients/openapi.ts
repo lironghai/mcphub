@@ -1,7 +1,8 @@
 import axios, { AxiosInstance, AxiosRequestConfig } from 'axios';
 import SwaggerParser from '@apidevtools/swagger-parser';
-import { OpenAPIV3 } from 'openapi-types';
+import { OpenAPIV3, OpenAPIV3_1 } from 'openapi-types';
 import { ServerConfig, OpenAPISecurityConfig } from '../types/index.js';
+import { createSafeJSON } from '../utils/serialization.js';
 
 export interface OpenAPIToolInfo {
   name: string;
@@ -17,7 +18,7 @@ export interface OpenAPIToolInfo {
 
 export class OpenAPIClient {
   private httpClient: AxiosInstance;
-  private spec: OpenAPIV3.Document | null = null;
+  private spec: OpenAPIV3_1.Document | null = null;
   private tools: OpenAPIToolInfo[] = [];
   private baseUrl: string;
   private securityConfig?: OpenAPISecurityConfig;
@@ -107,12 +108,12 @@ export class OpenAPIClient {
       if (this.config.openapi?.url) {
         this.spec = (await SwaggerParser.dereference(
           this.config.openapi.url,
-        )) as OpenAPIV3.Document;
+        )) as OpenAPIV3_1.Document;
       } else if (this.config.openapi?.schema) {
         // For schema object, we need to pass it as a cloned object
-        this.spec = (await SwaggerParser.dereference(
+        this.spec = await SwaggerParser.dereference(
           JSON.parse(JSON.stringify(this.config.openapi.schema)),
-        )) as OpenAPIV3.Document;
+        ) as OpenAPIV3_1.Document;
       } else {
         throw new Error('Either OpenAPI URL or schema must be provided');
       }
@@ -125,6 +126,49 @@ export class OpenAPIClient {
       const errorMessage = error instanceof Error ? error.message : String(error);
       throw new Error(`Failed to load OpenAPI specification: ${errorMessage}`);
     }
+  }
+
+  private createSafeSchema(schema: any): any {
+    if (!schema || typeof schema !== 'object') {
+      return schema;
+    }
+    
+    // Apply circular reference handling to schema objects
+    return createSafeJSON(schema);
+  }
+
+  private expandParameter(param: OpenAPIV3.ParameterObject, value: unknown): Record<string, unknown> {
+    const result: Record<string, unknown> = {};
+    
+    // Check if this is an object parameter that should be expanded
+    const schema = param.schema as OpenAPIV3.SchemaObject;
+    if (schema?.type === 'object' && 
+        typeof value === 'object' && 
+        value !== null &&
+        schema.properties) {
+      
+      // Expand object properties into separate query parameters
+      const objectValue = value as Record<string, unknown>;
+      
+      for (const [propName, propSchema] of Object.entries(schema.properties)) {
+        const propValue = objectValue[propName];
+        if (propValue !== undefined) {
+          // Handle different property types
+          if ((propSchema as any)?.type === 'array') {
+            // For array properties, convert to query parameter format
+            result[propName] = Array.isArray(propValue) ? propValue : [propValue];
+          } else {
+            // For primitive properties, use directly
+            result[propName] = propValue;
+          }
+        }
+      }
+    } else {
+      // For non-object parameters, use the parameter name as key
+      result[param.name] = value;
+    }
+    
+    return result;
   }
 
   private generateOperationName(method: string, path: string): string {
@@ -195,7 +239,7 @@ export class OpenAPIClient {
       ] as const;
 
       for (const method of methods) {
-        const operation = pathItem[method] as OpenAPIV3.OperationObject | undefined;
+        const operation = (pathItem as any)[method] as OpenAPIV3.OperationObject | undefined;
         if (!operation) continue;
 
         // Generate operation name: use operationId first, otherwise generate unique name
@@ -273,7 +317,8 @@ export class OpenAPIClient {
 
     if (queryParams?.length) {
       for (const param of queryParams) {
-        properties[param.name] = param.schema || {
+        // Apply safe schema processing to handle circular references
+        properties[param.name] = this.createSafeSchema(param.schema) || {
           type: 'string',
           description: param.description || `Query parameter: ${param.name}`,
         };
@@ -289,7 +334,8 @@ export class OpenAPIClient {
       const jsonContent = requestBody.content?.['application/json'];
 
       if (jsonContent?.schema) {
-        properties['body'] = jsonContent.schema;
+        // Apply safe schema processing to handle circular references
+        properties['body'] = this.createSafeSchema(jsonContent.schema);
         if (requestBody.required) {
           required.push('body');
         }
@@ -308,7 +354,7 @@ export class OpenAPIClient {
     try {
       // Build the request URL with path parameters
       let url = tool.path;
-      const pathParams = tool.parameters?.filter((p) => p.in === 'path') || [];
+      const pathParams = tool.parameters?.filter((p: any) => 'in' in p && p.in === 'path') || [];
 
       for (const param of pathParams) {
         const value = args[param.name];
@@ -319,12 +365,14 @@ export class OpenAPIClient {
 
       // Build query parameters
       const queryParams: Record<string, unknown> = {};
-      const queryParamDefs = tool.parameters?.filter((p) => p.in === 'query') || [];
+      const queryParamDefs = tool.parameters?.filter((p: any) => 'in' in p && p.in === 'query') || [];
 
       for (const param of queryParamDefs) {
         const value = args[param.name];
         if (value !== undefined) {
-          queryParams[param.name] = value;
+          // Expand object parameters into separate query parameters
+          const expandedParams = this.expandParameter(param, value);
+          Object.assign(queryParams, expandedParams);
         }
       }
 
@@ -341,7 +389,7 @@ export class OpenAPIClient {
       }
 
       // Add headers if any header parameters are defined
-      const headerParams = tool.parameters?.filter((p) => p.in === 'header') || [];
+      const headerParams = tool.parameters?.filter((p: any) => 'in' in p && p.in === 'header') || [];
       if (headerParams.length > 0) {
         requestConfig.headers = {};
         for (const param of headerParams) {
@@ -365,10 +413,11 @@ export class OpenAPIClient {
   }
 
   getTools(): OpenAPIToolInfo[] {
-    return this.tools;
+    // Apply circular reference safety to the entire tools array
+    return createSafeJSON(this.tools);
   }
 
-  getSpec(): OpenAPIV3.Document | null {
+  getSpec(): OpenAPIV3_1.Document | null {
     return this.spec;
   }
 

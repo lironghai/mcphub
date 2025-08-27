@@ -123,6 +123,7 @@ export interface ServerConfig {
   owner?: string; // Owner of the server, defaults to 'admin' user
   keepAliveInterval?: number; // Keep-alive ping interval in milliseconds (default: 60000ms for SSE servers)
   tools?: Record<string, { enabled: boolean; description?: string }>; // Tool-specific configurations with enable/disable state and custom descriptions
+  tags?: string[]; // Custom tags for server organization and filtering
   options?: Partial<Pick<RequestOptions, 'timeout' | 'resetTimeoutOnProgress' | 'maxTotalTimeout'>>; // MCP request options configuration
   // OpenAPI specific configuration
   openapi?: {

@@ -537,6 +537,7 @@ export const getServersInfo = (): Omit<ServerInfo, 'client' | 'transport'>[] => 
       tools: toolsWithEnabled,
       createTime,
       enabled,
+      tags: serverConfig?.tags || [], // Include tags from server configuration
     };
   });
   infos.sort((a, b) => {

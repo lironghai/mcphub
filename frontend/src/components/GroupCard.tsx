@@ -119,14 +119,22 @@ const GroupCard = ({
   }
 
   const handleCopyUrl = () => {
-    copyToClipboard(`${installConfig.baseUrl}/mcp/${group.id}`)
+    // 如果配置的baseUrl是默认的localhost:3000，则使用当前域名
+    const baseUrl = installConfig.baseUrl === 'http://localhost:3000' 
+      ? `${window.location.protocol}//${window.location.host}`
+      : installConfig.baseUrl;
+    copyToClipboard(`${baseUrl}/mcp/${group.id}`)
   }
 
   const handleCopyJson = () => {
+    // 如果配置的baseUrl是默认的localhost:3000，则使用当前域名
+    const baseUrl = installConfig.baseUrl === 'http://localhost:3000' 
+      ? `${window.location.protocol}//${window.location.host}`
+      : installConfig.baseUrl;
     const jsonConfig = {
       mcpServers: {
         mcphub: {
-          url: `${installConfig.baseUrl}/mcp/${group.id}`,
+          url: `${baseUrl}/mcp/${group.id}`,
           headers: {
             Authorization: "Bearer <your-access-token>"
           }
